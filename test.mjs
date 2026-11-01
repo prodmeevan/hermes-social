@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { parseArgs, normalizeUrl, siteUrl, feedUrl, selectTargetTab } from './hermes-social.mjs';
 assert.deepEqual(parseArgs(['screenshot', 'https://www.reddit.com/']), { command: 'screenshot', url: 'https://www.reddit.com/' });
 assert.throws(() => parseArgs(['screenshot']), /URL/);
+assert.deepEqual(parseArgs(['video', 'https://www.instagram.com/reel/abc/']), { command: 'video', url: 'https://www.instagram.com/reel/abc/', frames: 4 });
+assert.deepEqual(parseArgs(['video', 'https://www.youtube.com/watch?v=abc', '--frames', '3']), { command: 'video', url: 'https://www.youtube.com/watch?v=abc', frames: 3 });
+assert.throws(() => parseArgs(['video', 'https://evil.example/video']), /supported site/);
+assert.throws(() => parseArgs(['video', 'https://www.youtube.com/watch?v=abc', '--frames', '7']), /1 and 5/);
 
 assert.equal(selectTargetTab([
   { type: 'page', url: 'about:blank', id: 'old' },

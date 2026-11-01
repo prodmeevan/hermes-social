@@ -33,8 +33,15 @@ function requireExists(file) {
 
 export function parseArgs(argv) {
   const [command, ...rest] = argv;
-  if (!['status', 'login', 'search', 'read', 'feed', 'screenshot'].includes(command)) throw new Error('command must be status, login, search, read, feed, or screenshot');
+  if (!['status', 'login', 'search', 'read', 'feed', 'screenshot', 'video'].includes(command)) throw new Error('command must be status, login, search, read, feed, screenshot, or video');
   if (command === 'screenshot') return { command, url: normalizeUrl(rest.join(' ').trim()) };
+  if (command === 'video') {
+    const frameIndex = rest.indexOf('--frames');
+    const frames = frameIndex < 0 ? 4 : Number(rest[frameIndex + 1]);
+    const urlArgs = frameIndex < 0 ? rest : [...rest.slice(0, frameIndex), ...rest.slice(frameIndex + 2)];
+    if (!Number.isInteger(frames) || frames < 1 || frames > 5) throw new Error('--frames must be between 1 and 5');
+    return { command, url: normalizeUrl(urlArgs.join(' ').trim()), frames };
+  }
   const siteIndex = rest.indexOf('--site');
   const site = siteIndex >= 0 ? rest[siteIndex + 1] : undefined;
   const args = siteIndex < 0 ? rest : [...rest.slice(0, siteIndex), ...rest.slice(siteIndex + 2)];
@@ -119,6 +126,52 @@ async function saveScreenshot(targetId, outputPath) {
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, Buffer.from(result.data, 'base64'));
     return outputPath;
+  } finally { ws.close(); }
+}
+
+async function captureVideoFrames(targetId, outputDir, count) {
+  const target = (await cdp('/json/list')).find(tab => tab.type === 'page' && tab.id === targetId);
+  if (!target) throw new Error('Video tab disappeared before frame capture');
+  const ws = new WebSocket(target.webSocketDebuggerUrl);
+  await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = () => reject(new Error('Could not connect to video tab')); });
+  let id = 0;
+  const pending = new Map();
+  ws.onmessage = event => {
+    const message = JSON.parse(event.data);
+    const waiter = pending.get(message.id);
+    if (!waiter) return;
+    pending.delete(message.id);
+    message.error ? waiter.reject(new Error(message.error.message)) : waiter.resolve(message.result);
+  };
+  const send = (method, params = {}) => new Promise((resolve, reject) => {
+    const callId = ++id;
+    pending.set(callId, { resolve, reject });
+    ws.send(JSON.stringify({ id: callId, method, params }));
+  });
+  try {
+    await send('Runtime.enable');
+    let video;
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const probe = await send('Runtime.evaluate', { expression: `(() => { const v=document.querySelector('video'); return v ? {duration:v.duration, readyState:v.readyState} : null })()`, returnByValue: true });
+      video = probe.result?.value;
+      if (video && Number.isFinite(video.duration) && video.duration > 0) break;
+      await sleep(1000);
+    }
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) throw new Error('No accessible video element after 20 seconds; platform may block playback or require login');
+    const times = count === 1 ? [0] : Array.from({ length: count }, (_, i) => Math.round((video.duration - 0.25) * i / (count - 1) * 100) / 100);
+    const frames = [];
+    for (const seconds of times) {
+      const seek = await send('Runtime.evaluate', { expression: `new Promise(resolve => { const v=document.querySelector('video'); if (!v) return resolve(false); let settled=false; const done=ok=>{if(settled)return;settled=true;v.removeEventListener('seeked',onSeek);resolve(ok)}; const onSeek=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>done(v.readyState>=2))); v.addEventListener('seeked',onSeek,{once:true}); if(Math.abs(v.currentTime-${seconds})<0.05 && v.readyState>=2) onSeek(); else v.currentTime=${seconds}; setTimeout(()=>done(false),8000) })`, awaitPromise: true, returnByValue: true });
+      if (seek.result?.value !== true) continue;
+      await send('Page.enable');
+      const shot = await send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+      const file = path.join(outputDir, `frame-${String(frames.length + 1).padStart(2, '0')}-${seconds}s.png`);
+      await fs.mkdir(outputDir, { recursive: true });
+      await fs.writeFile(file, Buffer.from(shot.data, 'base64'));
+      frames.push({ timestamp_seconds: seconds, file });
+    }
+    if (!frames.length) throw new Error('Video frames could not be captured; video may not be playable here');
+    return { duration_seconds: video.duration, frames };
   } finally { ws.close(); }
 }
 
@@ -232,6 +285,15 @@ async function main() {
       let connected = false;
       try { verifyEdge(await cdp('/json/version')); connected = true; } catch {}
       json({ ok: true, version: VERSION, browserConnected: connected, profile: PROFILE, sites: Object.keys(SITES), commands: ['login', 'search', 'read', 'feed', 'screenshot'] });
+      return;
+    }
+    if (args.command === 'video') {
+      await ensureBrowser();
+      const tab = await openTab(args.url);
+      try {
+        const result = await captureVideoFrames(tab.id, path.join(SCREENSHOTS, `video-${Date.now()}`), args.frames);
+        json({ ok: true, url: args.url, duration_seconds: result.duration_seconds, frames: result.frames, speech: 'not_extracted', note: 'Visual samples only; speech/transcript not inferred. Tab closes after capture.' });
+      } finally { await closeTab(tab.id); }
       return;
     }
     if (args.command === 'screenshot') {

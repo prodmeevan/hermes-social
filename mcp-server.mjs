@@ -12,10 +12,11 @@ function latestScreenshot() { return fs.readdir(SCREENSHOTS).then(names => names
 const sites = ['youtube', 'reddit', 'x', 'threads', 'instagram'];
 const tools = [
   { name: 'social_search', description: 'Search visible pages on YouTube, Reddit, X, Threads, or Instagram.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites }, query: { type: 'string' } }, required: ['site', 'query'], additionalProperties: false } },
-  { name: 'social_read', description: 'Open and read visible content from a supported site URL.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'], additionalProperties: false } },
+  { name: 'social_read', description: 'Read visible caption, comments, and links from a supported post/video URL. If user requests video analysis, call video_analyze separately with the same public video URL, then combine observed speech, scenes, and key points with this page context. If the analyzer cannot access that platform URL, state the limitation; never bypass login, paywall, DRM, or verification.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'], additionalProperties: false } },
   { name: 'social_feed', description: 'Open selected site home/feed and return visible content from the user login.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites } }, required: ['site'], additionalProperties: false } },
   { name: 'social_login', description: 'Open selected site in dedicated Edge profile for user-managed login.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites } }, required: ['site'], additionalProperties: false } },
   { name: 'social_screenshot', description: 'Capture a PNG screenshot of a supported site URL. Saves screenshot locally and returns file path plus image.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'], additionalProperties: false } },
+  { name: 'social_video_analyze', description: 'Capture 1-5 representative frames from a visible video on YouTube, Reddit, X, Threads, or Instagram and return them as images for Hermes to describe. Uses visible media only; no audio extraction. Combine with visible captions/transcript when available. Report inaccessible media rather than bypassing login or protections.', inputSchema: { type: 'object', properties: { url: { type: 'string' }, frames: { type: 'integer', minimum: 1, maximum: 5, default: 4, description: 'Number of evenly sampled video frames; defaults to 4.' } }, required: ['url'], additionalProperties: false } },
 ];
 function send(message) { process.stdout.write(JSON.stringify(message) + '\n'); }
 function error(id, code, message) { send({ jsonrpc: '2.0', id, error: { code, message } }); }
@@ -49,6 +50,14 @@ async function handle(msg) {
         result = await callCli(['screenshot', normalizeUrl(a.url)]);
         const image = await fs.readFile(result.screenshot);
         send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: JSON.stringify(result) }, { type: 'image', data: image.toString('base64'), mimeType: 'image/png' }], structuredContent: result, isError: false } });
+        return;
+      }
+      else if (name === 'social_video_analyze') {
+        const frames = Math.max(1, Math.min(5, Number.isInteger(a.frames) ? a.frames : 4));
+        result = await callCli(['video', normalizeUrl(a.url), '--frames', String(frames)]);
+        const content = [{ type: 'text', text: JSON.stringify({ url: result.url, duration_seconds: result.duration_seconds, speech: result.speech, note: result.note, frames: result.frames.map(f => ({ timestamp_seconds: f.timestamp_seconds, file: f.file })) }) }];
+        for (const frame of result.frames) content.push({ type: 'image', data: (await fs.readFile(frame.file)).toString('base64'), mimeType: 'image/png' });
+        send({ jsonrpc: '2.0', id, result: { content, structuredContent: result, isError: false } });
         return;
       }
       else throw new Error(`unknown tool: ${name}`);

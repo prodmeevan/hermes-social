@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">Hermes Social — video analysis</title>
+<desc id="desc">Read-only social video frame analysis across five platforms.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101628"/><stop offset="1" stop-color="#202e4d"/></linearGradient>
+  <linearGradient id="accent" x1="0" x2="1"><stop stop-color="#77e0c3"/><stop offset="1" stop-color="#71a9ff"/></linearGradient>
+  <filter id="shadow" x="-.2" y="-.2" width="1.4" height="1.5"><feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#070b14" flood-opacity=".45"/></filter>
+</defs>
+<rect width="1200" height="630" rx="34" fill="url(#bg)"/>
+<circle cx="1030" cy="50" r="220" fill="#4972bb" opacity=".12"/><circle cx="1130" cy="510" r="240" fill="#78dfc0" opacity=".08"/>
+<g font-family="Inter,Segoe UI,Arial,sans-serif">
+  <rect x="72" y="72" width="54" height="54" rx="16" fill="url(#accent)"/><path d="M91 88v22l20-11z" fill="#102033"/>
+  <text x="144" y="108" fill="#d9e3f6" font-size="21" font-weight="700" letter-spacing="2">HERMES SOCIAL  /  BETA</text>
+  <text x="72" y="207" fill="#fff" font-size="64" font-weight="750">Video, summarized.</text>
+  <text x="74" y="257" fill="#b7c4da" font-size="25">Visible frames · page captions · no hidden-session tricks</text>
+  <g filter="url(#shadow)">
+    <rect x="72" y="319" width="650" height="230" rx="24" fill="#111a2b" stroke="#3a4b69" stroke-width="2"/>
+    <rect x="96" y="343" width="245" height="182" rx="16" fill="#202c41"/>
+    <rect x="355" y="343" width="341" height="182" rx="16" fill="#202c41"/>
+    <path d="M119 482l58-66 43 40 37-51 60 77z" fill="#7293b8" opacity=".75"/>
+    <circle cx="276" cy="379" r="14" fill="#f0c987"/>
+    <path d="M399 370h240a8 8 0 0 1 8 8v54a8 8 0 0 1-8 8H486l-31 24v-24h-56a8 8 0 0 1-8-8v-54a8 8 0 0 1 8-8z" fill="#293a54" stroke="#607594"/>
+    <text x="421" y="405" fill="#e8eef8" font-size="17">[visible captions, when available]</text>
+    <rect x="399" y="472" width="163" height="8" rx="4" fill="#77e0c3" opacity=".8"/><rect x="399" y="492" width="250" height="8" rx="4" fill="#66748d" opacity=".55"/>
+  </g>
+  <g font-size="16" font-weight="700" text-anchor="middle">
+    <rect x="772" y="331" width="116" height="46" rx="23" fill="#263b61"/><text x="830" y="360" fill="#cfe0ff">YouTube</text>
+    <rect x="900" y="331" width="104" height="46" rx="23" fill="#263b61"/><text x="952" y="360" fill="#cfe0ff">Reddit</text>
+    <rect x="1016" y="331" width="66" height="46" rx="23" fill="#263b61"/><text x="1049" y="360" fill="#cfe0ff">X</text>
+    <rect x="772" y="391" width="112" height="46" rx="23" fill="#263b61"/><text x="828" y="420" fill="#cfe0ff">Threads</text>
+    <rect x="896" y="391" width="126" height="46" rx="23" fill="#263b61"/><text x="959" y="420" fill="#cfe0ff">Instagram</text>
+  </g>
+  <text x="772" y="487" fill="#e5edf9" font-size="22" font-weight="700">Up to 5 frames</text>
+  <text x="772" y="521" fill="#9eacc3" font-size="18">Speech is never guessed.</text>
+  <text x="74" y="592" fill="#8f9db4" font-size="16">Local-first · read-only · community contributions welcome</text>
+</g>
+</svg>
