@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { parseArgs, normalizeUrl, siteUrl, feedUrl, selectTargetTab } from './hermes-social.mjs';
+assert.deepEqual(parseArgs(['screenshot', 'https://www.reddit.com/']), { command: 'screenshot', url: 'https://www.reddit.com/' });
+assert.throws(() => parseArgs(['screenshot']), /URL/);
+
+assert.equal(selectTargetTab([
+  { type: 'page', url: 'about:blank', id: 'old' },
+  { type: 'page', url: 'https://www.reddit.com/search/?q=python', id: 'target' },
+], 'https://www.reddit.com/search/?q=python')?.id, 'target');
+assert.equal(selectTargetTab([{ type: 'page', url: 'about:blank', id: 'old' }], 'https://www.reddit.com/search/?q=python'), null);
+
+assert.deepEqual(parseArgs(['search', '--site', 'reddit', 'python jobs']), {
+  command: 'search', site: 'reddit', query: 'python jobs'
+});
+assert.deepEqual(parseArgs(['feed', '--site', 'x']), { command: 'feed', site: 'x' });
+assert.deepEqual(parseArgs(['read', 'https://www.youtube.com/watch?v=abc']), { command: 'read', url: 'https://www.youtube.com/watch?v=abc' });
+assert.equal(siteUrl('reddit', 'search', 'python').startsWith('https://www.reddit.com/search/'), true);
+assert.equal(feedUrl('youtube'), 'https://www.youtube.com');
+assert.throws(() => normalizeUrl('https://evil.example/'), /supported site/);
+assert.throws(() => parseArgs(['search', '--site', 'threads']), /query/);
+console.log('self-test passed');
