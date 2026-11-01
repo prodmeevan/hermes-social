@@ -9,9 +9,9 @@ import { parseArgs, normalizeUrl, siteUrl, feedUrl } from './hermes-social.mjs';
 const SCREENSHOTS = path.join(os.homedir(), '.hermes-social', 'screenshots');
 function latestScreenshot() { return fs.readdir(SCREENSHOTS).then(names => names.filter(n => n.endsWith('.png')).sort().at(-1)).then(n => n ? path.join(SCREENSHOTS, n) : null); }
 
-const sites = ['youtube', 'reddit', 'x', 'threads'];
+const sites = ['youtube', 'reddit', 'x', 'threads', 'instagram'];
 const tools = [
-  { name: 'social_search', description: 'Search visible page on YouTube, Reddit, X, or Threads.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites }, query: { type: 'string' } }, required: ['site', 'query'], additionalProperties: false } },
+  { name: 'social_search', description: 'Search visible pages on YouTube, Reddit, X, Threads, or Instagram.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites }, query: { type: 'string' } }, required: ['site', 'query'], additionalProperties: false } },
   { name: 'social_read', description: 'Open and read visible content from a supported site URL.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'], additionalProperties: false } },
   { name: 'social_feed', description: 'Open selected site home/feed and return visible content from the user login.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites } }, required: ['site'], additionalProperties: false } },
   { name: 'social_login', description: 'Open selected site in dedicated Edge profile for user-managed login.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites } }, required: ['site'], additionalProperties: false } },

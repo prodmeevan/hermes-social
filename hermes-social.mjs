@@ -23,7 +23,8 @@ const SITES = {
   youtube: { host: 'www.youtube.com', search: q => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, feed: 'https://www.youtube.com' },
   reddit: { host: 'www.reddit.com', search: q => `https://www.reddit.com/search/?q=${encodeURIComponent(q)}`, feed: 'https://www.reddit.com/?feed=home' },
   x: { host: 'x.com', search: q => `https://x.com/search?q=${encodeURIComponent(q)}`, feed: 'https://x.com/home' },
-  threads: { host: 'www.threads.net', search: q => `https://www.threads.net/search?q=${encodeURIComponent(q)}`, feed: 'https://www.threads.net' },
+  threads: { host: 'www.threads.com', aliases: ['www.threads.net', 'threads.net'], search: q => `https://www.threads.com/search?q=${encodeURIComponent(q)}`, feed: 'https://www.threads.com' },
+  instagram: { host: 'www.instagram.com', aliases: ['instagram.com'], search: q => `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(q)}`, feed: 'https://www.instagram.com/' },
 };
 
 function requireExists(file) {
@@ -64,10 +65,14 @@ export function parseArgs(argv) {
   return result;
 }
 
+function isSupportedHost(hostname) {
+  return Object.values(SITES).some(site => [site.host, ...(site.aliases || [])].some(host => hostname === host || hostname.endsWith(`.${host}`)));
+}
+
 export function normalizeUrl(raw) {
   let url;
   try { url = new URL(raw); } catch { throw new Error('invalid URL'); }
-  if (url.protocol !== 'https:' || !Object.values(SITES).some(s => url.hostname === s.host || url.hostname.endsWith(`.${s.host}`))) {
+  if (url.protocol !== 'https:' || !isSupportedHost(url.hostname)) {
     throw new Error('URL must use HTTPS on a supported site: YouTube, Reddit, X, or Threads');
   }
   return url.href;
@@ -173,7 +178,7 @@ async function evaluate(expression, expectedUrl, targetId) {
   const tab = await activePage(expectedUrl, targetId);
   if (!tab) throw new Error('No page open in tool-owned Edge');
   const parsed = new URL(tab.url);
-  if (!Object.values(SITES).some(site => parsed.hostname === site.host || parsed.hostname.endsWith(`.${site.host}`))) {
+  if (!isSupportedHost(parsed.hostname)) {
     throw new Error('Navigation left supported sites; extraction blocked');
   }
   const ws = new WebSocket(tab.webSocketDebuggerUrl); (await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = () => reject(new Error('Could not connect to Edge DevTools')); }));

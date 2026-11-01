@@ -16,6 +16,11 @@ assert.deepEqual(parseArgs(['feed', '--site', 'x']), { command: 'feed', site: 'x
 assert.deepEqual(parseArgs(['read', 'https://www.youtube.com/watch?v=abc']), { command: 'read', url: 'https://www.youtube.com/watch?v=abc' });
 assert.equal(siteUrl('reddit', 'search', 'python').startsWith('https://www.reddit.com/search/'), true);
 assert.equal(feedUrl('youtube'), 'https://www.youtube.com');
+assert.equal(feedUrl('instagram'), 'https://www.instagram.com/');
+assert.equal(siteUrl('instagram', 'search', 'cats'), 'https://www.instagram.com/explore/search/keyword/?q=cats');
+assert.deepEqual(parseArgs(['feed', '--site', 'instagram']), { command: 'feed', site: 'instagram' });
+assert.equal(normalizeUrl('https://www.instagram.com/p/example/'), 'https://www.instagram.com/p/example/');
+assert.equal(normalizeUrl('https://www.threads.com/following/'), 'https://www.threads.com/following/');
 assert.throws(() => normalizeUrl('https://evil.example/'), /supported site/);
 assert.throws(() => parseArgs(['search', '--site', 'threads']), /query/);
 console.log('self-test passed');
