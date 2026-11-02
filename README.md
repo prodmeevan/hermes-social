@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/video-analysis.svg" alt="Hermes Social video analysis across five platforms" width="100%"></p>
 
-Read-only local MCP server and CLI for visible pages and video frames on YouTube, Reddit, X, Threads, and Instagram. Uses a dedicated Microsoft Edge profile and Node.js built-ins—no API key, cloud scraper, or npm dependency.
+Read-only local MCP server and CLI for visible pages and video frames on YouTube, Reddit, X, Threads, Instagram, and TikTok. Uses a dedicated Microsoft Edge profile and Node.js built-ins—no API key, cloud scraper, or npm dependency.
 
 > Help make beta better: test your platform, report UI changes, improve docs, or send a pull request. Start with [CONTRIBUTING.md](CONTRIBUTING.md); include platform, steps, and sanitized output—never cookies, passwords, or private profile data.
 
@@ -89,4 +89,5 @@ Tool terdaftar: `social_search`, `social_read`, `social_feed`, `social_login`, `
 - Browser memakai satu profil terisolasi dan port DevTools loopback eksklusif 9334; tidak attach ke Edge pribadi. Kalau port dipakai proses lain, tool berhenti.
 - Baca konten HTML yang tampil saja; tak mengeklik CAPTCHA, melewati paywall, mengekstrak cookie, posting, like, follow, atau DM.
 - Instagram feed setelah login manual dan baca posting sudah diuji langsung: teks posting serta komentar yang tampil terbaca. Sebagian posting membatasi komentar; hasil hanya mencakup yang dimuat browser. Instagram search URL terbuka, tetapi hasil search tidak tampil stabil. Feed Reddit publik, baca posting Reddit, dan feed YouTube juga diuji. X/Threads search serta feed X belum terverifikasi stabil; Threads sudah membaca feed setelah login manual.
+- TikTok live test: search returns visible results; public NASA post caption/read works; video element exposes duration and frames. Frame capture may include TikTok overlays. For You route currently returns page shell without feed posts. Login, region, and UI restrictions may change access.
 - Gratis dan tanpa API key, tetapi uptime/akses ditentukan situs. Kalau verifikasi muncul, selesaikan manual di Edge; tool melaporkan gagal sampai halaman menampilkan konten.

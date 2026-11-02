@@ -21,6 +21,11 @@ assert.deepEqual(parseArgs(['read', 'https://www.youtube.com/watch?v=abc']), { c
 assert.equal(siteUrl('reddit', 'search', 'python').startsWith('https://www.reddit.com/search/'), true);
 assert.equal(feedUrl('youtube'), 'https://www.youtube.com');
 assert.equal(feedUrl('instagram'), 'https://www.instagram.com/');
+assert.equal(feedUrl('tiktok'), 'https://www.tiktok.com/foryou');
+assert.equal(siteUrl('tiktok', 'search', 'cats'), 'https://www.tiktok.com/search?q=cats');
+assert.deepEqual(parseArgs(['feed', '--site', 'tiktok']), { command: 'feed', site: 'tiktok' });
+assert.equal(normalizeUrl('https://www.tiktok.com/@user/video/12345'), 'https://www.tiktok.com/@user/video/12345');
+assert.throws(() => normalizeUrl('https://tiktok.com.evil.example/video'), /supported site/);
 assert.equal(siteUrl('instagram', 'search', 'cats'), 'https://www.instagram.com/explore/search/keyword/?q=cats');
 assert.deepEqual(parseArgs(['feed', '--site', 'instagram']), { command: 'feed', site: 'instagram' });
 assert.equal(normalizeUrl('https://www.instagram.com/p/example/'), 'https://www.instagram.com/p/example/');

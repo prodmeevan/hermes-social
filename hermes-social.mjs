@@ -25,6 +25,7 @@ const SITES = {
   x: { host: 'x.com', search: q => `https://x.com/search?q=${encodeURIComponent(q)}`, feed: 'https://x.com/home' },
   threads: { host: 'www.threads.com', aliases: ['www.threads.net', 'threads.net'], search: q => `https://www.threads.com/search?q=${encodeURIComponent(q)}`, feed: 'https://www.threads.com' },
   instagram: { host: 'www.instagram.com', aliases: ['instagram.com'], search: q => `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(q)}`, feed: 'https://www.instagram.com/' },
+  tiktok: { host: 'www.tiktok.com', aliases: ['tiktok.com'], search: q => `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`, feed: 'https://www.tiktok.com/foryou' },
 };
 
 function requireExists(file) {
@@ -59,7 +60,7 @@ export function parseArgs(argv) {
   if (command === 'read' && !result.url) throw new Error('read requires a URL');
   if (command === 'search' && !result.query) throw new Error('search requires a query');
   if (command === 'login' && !site) throw new Error('login requires --site');
-  if (siteIndex >= 0 && !site) throw new Error('--site requires youtube, reddit, x, or threads');
+  if (siteIndex >= 0 && !site) throw new Error('--site requires a supported site');
   if (site && !SITES[site]) throw new Error(`unknown site: ${site}`);
   if (command === 'read' && result.url.startsWith('-')) throw new Error('read requires a URL');
   if (command === 'search' && args.some(x => x === '--site')) throw new Error('--site must be followed by a supported site');
@@ -284,7 +285,7 @@ async function main() {
     if (args.command === 'status') {
       let connected = false;
       try { verifyEdge(await cdp('/json/version')); connected = true; } catch {}
-      json({ ok: true, version: VERSION, browserConnected: connected, profile: PROFILE, sites: Object.keys(SITES), commands: ['login', 'search', 'read', 'feed', 'screenshot'] });
+      json({ ok: true, version: VERSION, browserConnected: connected, profile: PROFILE, sites: Object.keys(SITES), commands: ['login', 'search', 'read', 'feed', 'screenshot', 'video'] });
       return;
     }
     if (args.command === 'video') {
