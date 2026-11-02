@@ -32,6 +32,12 @@ function requireExists(file) {
   try { return !!file && (process.getBuiltinModule('node:fs').existsSync(file)); } catch { return false; }
 }
 
+export function videoFrameTimes(duration, count) {
+  if (!Number.isFinite(duration) || duration <= 0) throw new Error('video duration must be positive');
+  if (!Number.isInteger(count) || count < 1 || count > 10) throw new Error('frame count must be between 1 and 10');
+  return count === 1 ? [0] : Array.from({ length: count }, (_, i) => Math.round((duration - Math.min(0.25, duration / 100)) * i / (count - 1) * 100) / 100);
+}
+
 export function parseArgs(argv) {
   const [command, ...rest] = argv;
   if (!['status', 'login', 'search', 'read', 'feed', 'screenshot', 'video'].includes(command)) throw new Error('command must be status, login, search, read, feed, screenshot, or video');
@@ -40,7 +46,7 @@ export function parseArgs(argv) {
     const frameIndex = rest.indexOf('--frames');
     const frames = frameIndex < 0 ? 4 : Number(rest[frameIndex + 1]);
     const urlArgs = frameIndex < 0 ? rest : [...rest.slice(0, frameIndex), ...rest.slice(frameIndex + 2)];
-    if (!Number.isInteger(frames) || frames < 1 || frames > 5) throw new Error('--frames must be between 1 and 5');
+    if (!Number.isInteger(frames) || frames < 1 || frames > 10) throw new Error('--frames must be between 1 and 10');
     return { command, url: normalizeUrl(urlArgs.join(' ').trim()), frames };
   }
   const siteIndex = rest.indexOf('--site');
@@ -153,19 +159,22 @@ async function captureVideoFrames(targetId, outputDir, count) {
     await send('Runtime.enable');
     let video;
     for (let attempt = 0; attempt < 20; attempt++) {
-      const probe = await send('Runtime.evaluate', { expression: `(() => { const v=document.querySelector('video'); return v ? {duration:v.duration, readyState:v.readyState} : null })()`, returnByValue: true });
+      const probe = await send('Runtime.evaluate', { expression: `(() => { const v=document.querySelector('video'); if(!v)return null; v.scrollIntoView({block:'center',inline:'center'}); const r=v.getBoundingClientRect(); return {duration:v.duration, readyState:v.readyState, rect:{x:r.x,y:r.y,width:r.width,height:r.height}, viewport:{width:innerWidth,height:innerHeight}} })()`, returnByValue: true });
       video = probe.result?.value;
-      if (video && Number.isFinite(video.duration) && video.duration > 0) break;
+      if (video && Number.isFinite(video.duration) && video.duration > 0 && video.rect.width > 0 && video.rect.height > 0) break;
       await sleep(1000);
     }
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0) throw new Error('No accessible video element after 20 seconds; platform may block playback or require login');
-    const times = count === 1 ? [0] : Array.from({ length: count }, (_, i) => Math.round((video.duration - 0.25) * i / (count - 1) * 100) / 100);
+    if (!(video.rect.width > 0 && video.rect.height > 0)) throw new Error('Video element has no visible area to capture');
+    const clip = { x: Math.max(0, video.rect.x), y: Math.max(0, video.rect.y), width: Math.min(video.rect.x + video.rect.width, video.viewport.width) - Math.max(0, video.rect.x), height: Math.min(video.rect.y + video.rect.height, video.viewport.height) - Math.max(0, video.rect.y), scale: 1 };
+    if (clip.width < 2 || clip.height < 2) throw new Error('Video element is outside visible browser area');
+    const times = videoFrameTimes(video.duration, count);
     const frames = [];
     for (const seconds of times) {
       const seek = await send('Runtime.evaluate', { expression: `new Promise(resolve => { const v=document.querySelector('video'); if (!v) return resolve(false); let settled=false; const done=ok=>{if(settled)return;settled=true;v.removeEventListener('seeked',onSeek);resolve(ok)}; const onSeek=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>done(v.readyState>=2))); v.addEventListener('seeked',onSeek,{once:true}); if(Math.abs(v.currentTime-${seconds})<0.05 && v.readyState>=2) onSeek(); else v.currentTime=${seconds}; setTimeout(()=>done(false),8000) })`, awaitPromise: true, returnByValue: true });
       if (seek.result?.value !== true) continue;
       await send('Page.enable');
-      const shot = await send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+      const shot = await send('Page.captureScreenshot', { format: 'png', fromSurface: true, clip });
       const file = path.join(outputDir, `frame-${String(frames.length + 1).padStart(2, '0')}-${seconds}s.png`);
       await fs.mkdir(outputDir, { recursive: true });
       await fs.writeFile(file, Buffer.from(shot.data, 'base64'));

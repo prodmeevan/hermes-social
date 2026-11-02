@@ -9,14 +9,14 @@ Read-only local MCP server and CLI for visible pages and video frames on YouTube
 ## What works
 
 - Search, read, feed, manual login, and screenshots for supported sites (availability differs by site).
-- `social_video_analyze`: captures up to five visible frames from an accessible player; Hermes can describe scenes. No audio extraction. Speech summary only when captions/transcripts are visible.
+- `social_video_analyze`: captures up to ten evenly spaced, cropped frames from the visible video element; default four. Hermes can describe scenes and onscreen text. No audio extraction. Speech summary only when captions/transcripts are visible.
 - Temporary tabs close after read operations. Login tabs stay open for manual interaction.
 
-Video playback was exercised on a public YouTube video. Other platforms are best-effort and may block playback or frame capture; do not treat support as guaranteed on every post.
+Video frame capture has been exercised on public YouTube and TikTok posts. Other platforms are best-effort and may block playback or frame capture; do not treat support as guaranteed on every post.
 
 ## Preview
 
-![Video frame analysis: representative frames, visible captions, five supported social platforms](assets/video-analysis.svg)
+![Video frame analysis: representative frames, visible captions, six supported social platforms](assets/video-analysis.svg)
 
 ## Contribute
 
@@ -62,9 +62,9 @@ hermes-social.cmd screenshot https://www.reddit.com/r/indonesia/
 hermes-social.cmd video https://www.youtube.com/watch?v=VIDEO_ID --frames 4
 ```
 
-`video <URL> [--frames 1..5]` captures evenly spaced visual frames from an accessible player. MCP tool `social_video_analyze` returns those frames as images for Hermes to describe. No audio extraction: summarize speech only from captions/transcripts visible on the page. Private or restricted media may fail; no login, DRM, or verification bypass.
+`video <URL> [--frames 1..10]` captures evenly spaced, video-cropped frames from an accessible player. Default is 4; up to 10 frames help cover scene changes. MCP tool `social_video_analyze` returns frames as images for Hermes to describe. No audio extraction: summarize speech only from captions/transcripts visible on the page. Private or restricted media may fail; no login, DRM, or verification bypass.
 
-Video support is best-effort across all five sites, subject to each site exposing a playable video element in the dedicated browser.
+Video support is best-effort across all six sites, subject to each site exposing a playable video element in the dedicated browser.
 
 `feed` opens beranda situs dan mengembalikan teks yang terlihat di halaman. Feed bergantung akun/login dan dapat berubah sesuai rekomendasi situs. Untuk video YouTube, halaman publik menampilkan metadata/teks yang tersedia; tidak menjanjikan transkrip lengkap.
 

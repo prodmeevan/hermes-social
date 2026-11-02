@@ -16,7 +16,7 @@ const tools = [
   { name: 'social_feed', description: 'Open selected site home/feed and return visible content from the user login.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites } }, required: ['site'], additionalProperties: false } },
   { name: 'social_login', description: 'Open selected site in dedicated Edge profile for user-managed login.', inputSchema: { type: 'object', properties: { site: { type: 'string', enum: sites } }, required: ['site'], additionalProperties: false } },
   { name: 'social_screenshot', description: 'Capture a PNG screenshot of a supported site URL. Saves screenshot locally and returns file path plus image.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'], additionalProperties: false } },
-  { name: 'social_video_analyze', description: 'Capture 1-5 representative frames from a visible video on YouTube, Reddit, X, Threads, Instagram, or TikTok and return them as images for Hermes to describe. Uses visible media only; no audio extraction. Combine with visible captions/transcript when available. Report inaccessible media rather than bypassing login or protections.', inputSchema: { type: 'object', properties: { url: { type: 'string' }, frames: { type: 'integer', minimum: 1, maximum: 5, default: 4, description: 'Number of evenly sampled video frames; defaults to 4.' } }, required: ['url'], additionalProperties: false } },
+  { name: 'social_video_analyze', description: 'Capture 1-10 representative frames from a visible video on YouTube, Reddit, X, Threads, Instagram, or TikTok and return them as images for Hermes to describe. Uses visible media only; no audio extraction. Combine with visible captions/transcript when available. Report inaccessible media rather than bypassing login or protections.', inputSchema: { type: 'object', properties: { url: { type: 'string' }, frames: { type: 'integer', minimum: 1, maximum: 10, default: 4, description: 'Number of evenly sampled video frames; defaults to 4.' } }, required: ['url'], additionalProperties: false } },
 ];
 function send(message) { process.stdout.write(JSON.stringify(message) + '\n'); }
 function error(id, code, message) { send({ jsonrpc: '2.0', id, error: { code, message } }); }
@@ -53,7 +53,7 @@ async function handle(msg) {
         return;
       }
       else if (name === 'social_video_analyze') {
-        const frames = Math.max(1, Math.min(5, Number.isInteger(a.frames) ? a.frames : 4));
+        const frames = Math.max(1, Math.min(10, Number.isInteger(a.frames) ? a.frames : 4));
         result = await callCli(['video', normalizeUrl(a.url), '--frames', String(frames)]);
         const content = [{ type: 'text', text: JSON.stringify({ url: result.url, duration_seconds: result.duration_seconds, speech: result.speech, note: result.note, frames: result.frames.map(f => ({ timestamp_seconds: f.timestamp_seconds, file: f.file })) }) }];
         for (const frame of result.frames) content.push({ type: 'image', data: (await fs.readFile(frame.file)).toString('base64'), mimeType: 'image/png' });

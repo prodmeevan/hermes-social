@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
-import { parseArgs, normalizeUrl, siteUrl, feedUrl, selectTargetTab } from './hermes-social.mjs';
+import { parseArgs, normalizeUrl, siteUrl, feedUrl, selectTargetTab, videoFrameTimes } from './hermes-social.mjs';
 assert.deepEqual(parseArgs(['screenshot', 'https://www.reddit.com/']), { command: 'screenshot', url: 'https://www.reddit.com/' });
 assert.throws(() => parseArgs(['screenshot']), /URL/);
 assert.deepEqual(parseArgs(['video', 'https://www.instagram.com/reel/abc/']), { command: 'video', url: 'https://www.instagram.com/reel/abc/', frames: 4 });
 assert.deepEqual(parseArgs(['video', 'https://www.youtube.com/watch?v=abc', '--frames', '3']), { command: 'video', url: 'https://www.youtube.com/watch?v=abc', frames: 3 });
 assert.throws(() => parseArgs(['video', 'https://evil.example/video']), /supported site/);
-assert.throws(() => parseArgs(['video', 'https://www.youtube.com/watch?v=abc', '--frames', '7']), /1 and 5/);
+assert.deepEqual(parseArgs(['video', 'https://www.youtube.com/watch?v=abc', '--frames', '8']), { command: 'video', url: 'https://www.youtube.com/watch?v=abc', frames: 8 });
+assert.throws(() => parseArgs(['video', 'https://www.youtube.com/watch?v=abc', '--frames', '11']), /1 and 10/);
+assert.deepEqual(videoFrameTimes(20, 4), [0, 6.6, 13.2, 19.8]);
+assert.throws(() => videoFrameTimes(0, 4), /duration/);
 
 assert.equal(selectTargetTab([
   { type: 'page', url: 'about:blank', id: 'old' },
