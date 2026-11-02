@@ -26,6 +26,8 @@ const SITES = {
   threads: { host: 'www.threads.com', aliases: ['www.threads.net', 'threads.net'], search: q => `https://www.threads.com/search?q=${encodeURIComponent(q)}`, feed: 'https://www.threads.com' },
   instagram: { host: 'www.instagram.com', aliases: ['instagram.com'], search: q => `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(q)}`, feed: 'https://www.instagram.com/' },
   tiktok: { host: 'www.tiktok.com', aliases: ['tiktok.com'], search: q => `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`, feed: 'https://www.tiktok.com/foryou' },
+  facebook: { host: 'www.facebook.com', aliases: ['facebook.com', 'm.facebook.com'], search: q => `https://www.facebook.com/search/top/?q=${encodeURIComponent(q)}`, feed: 'https://www.facebook.com/' },
+  linkedin: { host: 'www.linkedin.com', aliases: ['linkedin.com'], search: q => `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(q)}`, feed: 'https://www.linkedin.com/feed/' },
 };
 
 function requireExists(file) {

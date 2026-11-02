@@ -35,4 +35,10 @@ assert.equal(normalizeUrl('https://www.instagram.com/p/example/'), 'https://www.
 assert.equal(normalizeUrl('https://www.threads.com/following/'), 'https://www.threads.com/following/');
 assert.throws(() => normalizeUrl('https://evil.example/'), /supported site/);
 assert.throws(() => parseArgs(['search', '--site', 'threads']), /query/);
+assert.equal(siteUrl('facebook', 'search', 'cats'), 'https://www.facebook.com/search/top/?q=cats');
+assert.equal(feedUrl('facebook'), 'https://www.facebook.com/');
+assert.equal(siteUrl('linkedin', 'search', 'engineer'), 'https://www.linkedin.com/search/results/all/?keywords=engineer');
+assert.equal(feedUrl('linkedin'), 'https://www.linkedin.com/feed/');
+assert.equal(normalizeUrl('https://www.facebook.com/somepage/posts/123'), 'https://www.facebook.com/somepage/posts/123');
+assert.equal(normalizeUrl('https://www.linkedin.com/posts/example-123'), 'https://www.linkedin.com/posts/example-123');
 console.log('self-test passed');
