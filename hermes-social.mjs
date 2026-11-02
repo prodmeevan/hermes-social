@@ -89,7 +89,7 @@ export function normalizeUrl(raw) {
   let url;
   try { url = new URL(raw); } catch { throw new Error('invalid URL'); }
   if (url.protocol !== 'https:' || !isSupportedHost(url.hostname)) {
-    throw new Error('URL must use HTTPS on a supported site: YouTube, Reddit, X, or Threads');
+    throw new Error('URL must use HTTPS on a supported site (YouTube, Reddit, X, Threads, Instagram, TikTok, Facebook, or LinkedIn)');
   }
   return url.href;
 }
